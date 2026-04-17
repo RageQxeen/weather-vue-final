@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="storm" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#5d6d91"/>
+      <stop offset="100%" stop-color="#26344d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#storm)"/>
+  <path d="M400 250c70-120 250-120 320 0 90-35 190 40 190 145H170c0-110 100-185 230-145z" fill="#c4cedd"/>
+  <g stroke="#b5e3ff" stroke-width="8" stroke-linecap="round" opacity="0.9">
+    <line x1="350" y1="430" x2="320" y2="520"/>
+    <line x1="470" y1="430" x2="440" y2="520"/>
+    <line x1="590" y1="430" x2="560" y2="520"/>
+    <line x1="710" y1="430" x2="680" y2="520"/>
+    <line x1="830" y1="430" x2="800" y2="520"/>
+    <line x1="950" y1="430" x2="920" y2="520"/>
+  </g>
+  <ellipse cx="800" cy="830" rx="800" ry="180" fill="#1e2b41"/>
+</svg>
