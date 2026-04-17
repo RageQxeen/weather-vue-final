@@ -15,7 +15,7 @@
 
     <div
       class="tint-layer"
-      :style="{ background: currentTint }"
+      :style="{ background: tintGradient }"
       aria-hidden="true"
     ></div>
 
@@ -28,9 +28,26 @@
         </div>
 
         <nav class="site-nav" aria-label="Primary navigation">
-          <RouterLink to="/">Home</RouterLink>
-          <RouterLink to="/hourly">Hourly</RouterLink>
-          <RouterLink to="/forecast">5 Day Forecast</RouterLink>
+          <RouterLink
+            to="/"
+            :style="navButtonStyle"
+          >
+            Home
+          </RouterLink>
+
+          <RouterLink
+            to="/hourly"
+            :style="navButtonStyle"
+          >
+            Hourly
+          </RouterLink>
+
+          <RouterLink
+            to="/forecast"
+            :style="navButtonStyle"
+          >
+            5 Day Forecast
+          </RouterLink>
         </nav>
       </header>
 
@@ -60,7 +77,7 @@ export default {
     }
   },
   computed: {
-    weatherState() {
+    resolvedWeather() {
       const { state } = useWeatherStore()
       return state.weather
     },
@@ -74,19 +91,19 @@ export default {
     nextBackgroundStyle() {
       return `url(${this.nextBackground})`
     },
-    currentTint() {
-      const weather = this.weatherState
+    tintGradient() {
+      const weather = this.resolvedWeather
 
-      if (!weather || !weather.current) {
-        return 'linear-gradient(180deg, rgba(60, 90, 140, 0.28), rgba(10, 20, 40, 0.42))'
+      if (!weather) {
+        return 'linear-gradient(rgba(20, 30, 60, 0.35), rgba(20, 30, 60, 0.55))'
       }
 
       const conditionText = weather.current.condition.text.toLowerCase()
+      const tempF = Number(weather.current.temp_f)
       const isDay = weather.current.is_day === 1
-      const tempF = weather.current.temp_f
 
       if (!isDay) {
-        return 'linear-gradient(180deg, rgba(12, 20, 45, 0.45), rgba(4, 8, 20, 0.68))'
+        return 'linear-gradient(rgba(8, 16, 40, 0.45), rgba(18, 30, 70, 0.9))'
       }
 
       if (
@@ -96,7 +113,7 @@ export default {
         conditionText.includes('shower') ||
         conditionText.includes('thunder')
       ) {
-        return 'linear-gradient(180deg, rgba(45, 72, 110, 0.42), rgba(18, 34, 58, 0.60))'
+        return 'linear-gradient(rgba(45, 65, 95, 0.40), rgba(30, 45, 75, 0.60))'
       }
 
       if (
@@ -105,7 +122,7 @@ export default {
         conditionText.includes('ice') ||
         tempF <= 45
       ) {
-        return 'linear-gradient(180deg, rgba(180, 205, 235, 0.34), rgba(90, 120, 155, 0.42))'
+        return 'linear-gradient(rgba(180, 210, 235, 0.30), rgba(120, 155, 190, 0.50))'
       }
 
       if (
@@ -114,14 +131,98 @@ export default {
         conditionText.includes('mist') ||
         conditionText.includes('fog')
       ) {
-        return 'linear-gradient(180deg, rgba(110, 125, 150, 0.30), rgba(60, 75, 95, 0.48))'
+        return 'linear-gradient(rgba(90, 105, 125, 0.35), rgba(55, 70, 90, 0.55))'
       }
 
       if (tempF >= 85) {
-        return 'linear-gradient(180deg, rgba(255, 190, 110, 0.24), rgba(255, 120, 80, 0.30))'
+        return 'linear-gradient(rgba(255, 170, 80, 0.22), rgba(255, 120, 60, 0.35))'
       }
 
-      return 'linear-gradient(180deg, rgba(90, 170, 255, 0.18), rgba(20, 40, 80, 0.32))'
+      return 'linear-gradient(rgba(70, 135, 210, 0.22), rgba(35, 75, 155, 0.38))'
+    },
+    navButtonStyle() {
+      const weather = this.resolvedWeather
+
+      if (!weather) {
+        return {
+          color: '#ffffff',
+          background: 'rgba(18, 30, 60, 0.45)',
+          border: '1px solid rgba(255, 255, 255, 0.28)',
+          boxShadow: '0 10px 24px rgba(0, 0, 0, 0.12)'
+        }
+      }
+
+      const conditionText = weather.current.condition.text.toLowerCase()
+      const tempF = Number(weather.current.temp_f)
+      const isDay = weather.current.is_day === 1
+
+      if (!isDay) {
+        return {
+          color: '#ffffff',
+          background: 'rgba(156, 74, 225, 0.8)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 10px 24px rgba(5, 10, 30, 0.28)'
+        }
+      }
+
+      if (
+        conditionText.includes('rain') ||
+        conditionText.includes('drizzle') ||
+        conditionText.includes('storm') ||
+        conditionText.includes('shower') ||
+        conditionText.includes('thunder')
+      ) {
+        return {
+          color: '#ffffff',
+          background: 'rgba(46, 68, 102, 0.78)',
+          border: '1px solid rgba(255, 255, 255, 0.20)',
+          boxShadow: '0 10px 24px rgba(23, 38, 63, 0.22)'
+        }
+      }
+
+      if (
+        conditionText.includes('snow') ||
+        conditionText.includes('sleet') ||
+        conditionText.includes('ice') ||
+        tempF <= 45
+      ) {
+        return {
+          color: '#ffffff',
+          background: 'rgba(0, 0, 0, 0.8)',
+          border: '1px solid rgba(20, 48, 79, 0.9)',
+          boxShadow: '0 10px 24px rgba(90, 120, 150, 0.16)'
+        }
+      }
+
+      if (
+        conditionText.includes('cloud') ||
+        conditionText.includes('overcast') ||
+        conditionText.includes('mist') ||
+        conditionText.includes('fog')
+      ) {
+        return {
+          color: '#ffffff',
+          background: 'rgba(82, 96, 118, 0.76)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 10px 24px rgba(48, 58, 74, 0.18)'
+        }
+      }
+
+      if (tempF >= 85) {
+        return {
+          color: '#4b1b00',
+          background: 'rgba(255, 220, 170, 0.90)',
+          border: '1px solid rgba(140, 74, 16, 0.16)',
+          boxShadow: '0 10px 24px rgba(180, 90, 20, 0.16)'
+        }
+      }
+
+      return {
+        color: '#ffffff',
+        background: 'rgba(66, 109, 190, 0.78)',
+        border: '1px solid rgba(255, 255, 255, 0.20)',
+        boxShadow: '0 10px 24px rgba(30, 58, 120, 0.18)'
+      }
     }
   },
   watch: {
@@ -207,6 +308,7 @@ input {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  transition: opacity 0.8s ease-in-out;
   z-index: 0;
 }
 
@@ -216,7 +318,6 @@ input {
 
 .bg-next {
   opacity: 0;
-  transition: opacity 0.8s ease-in-out;
 }
 
 .bg-next.fade-in {
@@ -228,6 +329,7 @@ input {
   inset: 0;
   z-index: 1;
   transition: background 0.8s ease-in-out;
+  pointer-events: none;
 }
 
 .overlay {
@@ -269,7 +371,7 @@ input {
 .subtitle {
   margin: 0 auto;
   max-width: 42rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .site-nav {
@@ -280,17 +382,20 @@ input {
 
 .site-nav a {
   text-decoration: none;
-  color: white;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 0.8rem 1rem;
   border-radius: 999px;
   font-weight: 700;
+  transition: transform 0.2s ease, background 0.3s ease, color 0.3s ease, border 0.3s ease;
+  backdrop-filter: blur(6px);
+}
+
+.site-nav a:hover {
+  transform: translateY(-1px);
 }
 
 .site-nav a.router-link-exact-active {
-  background: white;
-  color: var(--accent-dark);
+  outline: 2px solid rgba(255, 255, 255, 0.78);
+  outline-offset: 2px;
 }
 
 .main-content {
