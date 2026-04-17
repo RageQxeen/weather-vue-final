@@ -1,9 +1,20 @@
 <template>
-  <div class="app-shell" :style="appBackgroundStyle">
+  <div class="app-shell">
+    <div class="bg-layer bg-current"
+     :style="{ backgroundImage: currentBackgroundStyle }"
+     aria-hidden="true">
+</div>
+
+<div class="bg-layer bg-next"
+     :style="{ backgroundImage: nextBackgroundStyle }"
+     :class="{ 'fade-in': isTransitioning }"
+     aria-hidden="true">
+</div>
+
     <div class="overlay">
       <header class="site-header">
         <div>
-          <p class="eyebrow">Responsive Web Frameworks Final Project</p>
+          <p class="eyebrow">Responsive Web Frameworks Final Project by Alex Algiere</p>
           <h1>WeatherVue</h1>
           <p class="subtitle">Current weather, hourly trends, and a 5-day forecast powered by WeatherAPI.</p>
         </div>
@@ -32,21 +43,63 @@ export default {
     RouterLink,
     RouterView
   },
-  computed: {
-    appBackgroundStyle() {
-      const { state, getBackgroundImage } = useWeatherStore()
-      return {
-        backgroundImage: `linear-gradient(rgba(12, 20, 35, 0.45), rgba(12, 20, 35, 0.65)), url(${getBackgroundImage(state.weather)})`
-      }
+  data() {
+    return {
+      currentBackground: '',
+      nextBackground: '',
+      isTransitioning: false,
+      transitionTimer: null
     }
+  },
+  computed: {
+    resolvedBackground() {
+      const { state, getBackgroundImage } = useWeatherStore()
+      return getBackgroundImage(state.weather)
+    },
+    currentBackgroundStyle() {
+      return `linear-gradient(rgba(12, 20, 35, 0.45), rgba(12, 20, 35, 0.65)), url(${this.currentBackground})`
+    },
+    nextBackgroundStyle() {
+      return `linear-gradient(rgba(12, 20, 35, 0.45), rgba(12, 20, 35, 0.65)), url(${this.nextBackground})`
+    }
+  },
+watch: {
+  resolvedBackground: {
+    immediate: true,
+    handler(newImage) {
+      if (!newImage) return
+
+      if (!this.currentBackground) {
+        this.currentBackground = newImage
+        this.nextBackground = newImage
+        return
+      }
+
+      if (newImage === this.currentBackground) {
+        return
+      }
+
+      this.nextBackground = newImage
+      this.isTransitioning = true
+
+      clearTimeout(this.transitionTimer)
+      this.transitionTimer = setTimeout(() => {
+        this.currentBackground = newImage
+        this.isTransitioning = false
+      }, 1200)
+    }
+  }
+},
+  beforeUnmount() {
+    clearTimeout(this.transitionTimer)
   }
 }
 </script>
 
 <style>
 :root {
-  --bg-card: rgba(255, 255, 255, 0.9);
-  --bg-card-strong: rgba(255, 255, 255, 0.97);
+  --bg-card: rgba(255, 255, 255, .9);
+  --bg-card-strong: rgba(255, 255, 255, 0.9);
   --text-main: #152033;
   --text-muted: #51617c;
   --accent: #6d4aff;
@@ -82,15 +135,41 @@ input {
 }
 
 .app-shell {
+  position: relative;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+.bg-layer {
+  position: fixed;
+  inset: 0;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* base layer */
+.bg-current {
+  opacity: 1;
+}
+
+/* new image layer */
+.bg-next {
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+}
+
+/* only fade IN */
+.bg-next.fade-in {
+  opacity: 1;
 }
 
 .overlay {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
-  background: rgba(247, 249, 252, 0.18);
+  background: rgba(247, 249, 252, 0);
   backdrop-filter: blur(2px);
 }
 
@@ -123,7 +202,7 @@ input {
 }
 
 .subtitle {
-  margin: 0;
+  margin: 0 auto;
   max-width: 42rem;
   color: rgba(255, 255, 255, 0.9);
 }

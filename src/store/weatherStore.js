@@ -1,9 +1,9 @@
 import { reactive } from 'vue'
 import { fetchForecast } from '../services/weatherApi'
-import bgClear from '../assets/bg-clear.svg'
-import bgRain from '../assets/bg-rain.svg'
-import bgCold from '../assets/bg-cold.svg'
-import bgNight from '../assets/bg-night.svg'
+import bgClearDay from '../assets/bg-clear-day.jpg'
+import bgRain from '../assets/bg-rain.jpg'
+import bgCold from '../assets/bg-cold.jpg'
+import bgNight from '../assets/bg-clear-night.jpg'
 
 const STORAGE_KEY = 'weather_saved_locations'
 
@@ -38,16 +38,34 @@ function dedupeAndTrim(list) {
 }
 
 export function getBackgroundImage(weatherData) {
-  if (!weatherData) return bgClear
+  if (!weatherData) return bgClearDay
 
   const conditionText = weatherData.current.condition.text.toLowerCase()
   const tempF = weatherData.current.temp_f
   const isDay = weatherData.current.is_day === 1
 
   if (!isDay) return bgNight
-  if (conditionText.includes('rain') || conditionText.includes('drizzle') || conditionText.includes('storm')) return bgRain
-  if (conditionText.includes('snow') || tempF <= 45) return bgCold
-  return bgClear
+
+  if (
+    conditionText.includes('rain') ||
+    conditionText.includes('drizzle') ||
+    conditionText.includes('storm') ||
+    conditionText.includes('shower') ||
+    conditionText.includes('thunder')
+  ) {
+    return bgRain
+  }
+
+  if (
+    conditionText.includes('snow') ||
+    conditionText.includes('sleet') ||
+    conditionText.includes('ice') ||
+    tempF <= 45
+  ) {
+    return bgCold
+  }
+
+  return bgClearDay
 }
 
 export async function searchWeather(city, days = 5) {
@@ -66,7 +84,10 @@ export async function searchWeather(city, days = 5) {
     state.weather = data
     state.city = trimmedCity
   } catch (error) {
-    state.error = error.response?.data?.error?.message || error.message || 'Unable to load weather data.'
+    state.error =
+      error.response?.data?.error?.message ||
+      error.message ||
+      'Unable to load weather data.'
   } finally {
     state.loading = false
   }
