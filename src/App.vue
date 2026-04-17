@@ -1,15 +1,23 @@
 <template>
   <div class="app-shell">
-    <div class="bg-layer bg-current"
-     :style="{ backgroundImage: currentBackgroundStyle }"
-     aria-hidden="true">
-</div>
+    <div
+      class="bg-layer bg-current"
+      :style="{ backgroundImage: currentBackgroundStyle }"
+      aria-hidden="true"
+    ></div>
 
-<div class="bg-layer bg-next"
-     :style="{ backgroundImage: nextBackgroundStyle }"
-     :class="{ 'fade-in': isTransitioning }"
-     aria-hidden="true">
-</div>
+    <div
+      class="bg-layer bg-next"
+      :style="{ backgroundImage: nextBackgroundStyle }"
+      :class="{ 'fade-in': isTransitioning }"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="tint-layer"
+      :style="{ background: currentTint }"
+      aria-hidden="true"
+    ></div>
 
     <div class="overlay">
       <header class="site-header">
@@ -52,44 +60,97 @@ export default {
     }
   },
   computed: {
+    weatherState() {
+      const { state } = useWeatherStore()
+      return state.weather
+    },
     resolvedBackground() {
       const { state, getBackgroundImage } = useWeatherStore()
       return getBackgroundImage(state.weather)
     },
     currentBackgroundStyle() {
-      return `linear-gradient(rgba(12, 20, 35, 0.45), rgba(12, 20, 35, 0.65)), url(${this.currentBackground})`
+      return `url(${this.currentBackground})`
     },
     nextBackgroundStyle() {
-      return `linear-gradient(rgba(12, 20, 35, 0.45), rgba(12, 20, 35, 0.65)), url(${this.nextBackground})`
+      return `url(${this.nextBackground})`
+    },
+    currentTint() {
+      const weather = this.weatherState
+
+      if (!weather || !weather.current) {
+        return 'linear-gradient(180deg, rgba(60, 90, 140, 0.28), rgba(10, 20, 40, 0.42))'
+      }
+
+      const conditionText = weather.current.condition.text.toLowerCase()
+      const isDay = weather.current.is_day === 1
+      const tempF = weather.current.temp_f
+
+      if (!isDay) {
+        return 'linear-gradient(180deg, rgba(12, 20, 45, 0.45), rgba(4, 8, 20, 0.68))'
+      }
+
+      if (
+        conditionText.includes('rain') ||
+        conditionText.includes('drizzle') ||
+        conditionText.includes('storm') ||
+        conditionText.includes('shower') ||
+        conditionText.includes('thunder')
+      ) {
+        return 'linear-gradient(180deg, rgba(45, 72, 110, 0.42), rgba(18, 34, 58, 0.60))'
+      }
+
+      if (
+        conditionText.includes('snow') ||
+        conditionText.includes('sleet') ||
+        conditionText.includes('ice') ||
+        tempF <= 45
+      ) {
+        return 'linear-gradient(180deg, rgba(180, 205, 235, 0.34), rgba(90, 120, 155, 0.42))'
+      }
+
+      if (
+        conditionText.includes('cloud') ||
+        conditionText.includes('overcast') ||
+        conditionText.includes('mist') ||
+        conditionText.includes('fog')
+      ) {
+        return 'linear-gradient(180deg, rgba(110, 125, 150, 0.30), rgba(60, 75, 95, 0.48))'
+      }
+
+      if (tempF >= 85) {
+        return 'linear-gradient(180deg, rgba(255, 190, 110, 0.24), rgba(255, 120, 80, 0.30))'
+      }
+
+      return 'linear-gradient(180deg, rgba(90, 170, 255, 0.18), rgba(20, 40, 80, 0.32))'
     }
   },
-watch: {
-  resolvedBackground: {
-    immediate: true,
-    handler(newImage) {
-      if (!newImage) return
+  watch: {
+    resolvedBackground: {
+      immediate: true,
+      handler(newImage) {
+        if (!newImage) return
 
-      if (!this.currentBackground) {
-        this.currentBackground = newImage
+        if (!this.currentBackground) {
+          this.currentBackground = newImage
+          this.nextBackground = newImage
+          return
+        }
+
+        if (newImage === this.currentBackground) {
+          return
+        }
+
         this.nextBackground = newImage
-        return
+        this.isTransitioning = true
+
+        clearTimeout(this.transitionTimer)
+        this.transitionTimer = setTimeout(() => {
+          this.currentBackground = newImage
+          this.isTransitioning = false
+        }, 800)
       }
-
-      if (newImage === this.currentBackground) {
-        return
-      }
-
-      this.nextBackground = newImage
-      this.isTransitioning = true
-
-      clearTimeout(this.transitionTimer)
-      this.transitionTimer = setTimeout(() => {
-        this.currentBackground = newImage
-        this.isTransitioning = false
-      }, 1200)
     }
-  }
-},
+  },
   beforeUnmount() {
     clearTimeout(this.transitionTimer)
   }
@@ -149,25 +210,29 @@ input {
   z-index: 0;
 }
 
-/* base layer */
 .bg-current {
   opacity: 1;
 }
 
-/* new image layer */
 .bg-next {
   opacity: 0;
-  transition: opacity 1.2s ease-in-out;
+  transition: opacity 0.8s ease-in-out;
 }
 
-/* only fade IN */
 .bg-next.fade-in {
   opacity: 1;
 }
 
+.tint-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  transition: background 0.8s ease-in-out;
+}
+
 .overlay {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   min-height: 100vh;
   background: rgba(247, 249, 252, 0);
   backdrop-filter: blur(2px);
